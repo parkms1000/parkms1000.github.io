@@ -23,9 +23,14 @@ paginate: 10
 # Jekyll
 # ======
 exclude:
-  - scripts/
-  - README.md
-  - jekyll-theme-hamilton.gemspec
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+  - any_additional_item 
 
 # Jekyll SEO Tag (Optional)
 # =========================
