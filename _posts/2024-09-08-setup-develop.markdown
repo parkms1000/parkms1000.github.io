@@ -209,7 +209,7 @@ permissive 모드에서 보안 문제는 /var/log/audit/audit.log에 기록된�
 
 `nginx`가 unix 소켓에 접근 가능하도록 정책 허용
 
-{% highlight ruby %}
+{% highlight terminal %}
 grep nginx /var/log/audit/audit.log | audit2allow
 grep nginx /var/log/audit/audit.log | audit2allow -m nginx
 grep nginx /var/log/audit/audit.log | audit2allow -M nginx
