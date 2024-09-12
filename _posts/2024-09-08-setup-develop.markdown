@@ -1,11 +1,9 @@
 ---
 title: Django 개발 환경 구축 (uwsgi + nginx + postgresql)
-date: YYYY-MM-DD HH:MM:SS +09:00
+date: 2024-09-08 00:00:00 +09:00
 categories: [개발 관련, Django]
 tags: Django
 ---
-
-# Django 개발 환경 구축 (uwsgi + nginx + postgresql)
 
 ## 개요
 
@@ -57,7 +55,7 @@ Python Packaging Authority 도구를 이용해 Django를 설치합니다.
 
 root 계정으로 일반 사용자 계정(foo)와 일반 그룹 (www-data)를 추가합니다.
 
-```{shell}
+```bash
 adduser foo
 groupadd www-data
 useradd -g www-data -s /usr/sbin/nologin www-data
@@ -66,7 +64,7 @@ useradd -g www-data -s /usr/sbin/nologin www-data
 
 **Django 설치**
 
-```{shell}
+```bash
 pip install Django
 mkdir -p /var/www/example
 chown -R foo:www-data /var/www/example
@@ -76,7 +74,7 @@ mkdir logs repo run ssl
 
 **Django 프로젝트 생성**
 
-```{shell}
+```bash
 cd /var/www/example/repo
 django-admin.py startproject conf .
 ./manage.py makemigrations
@@ -91,7 +89,7 @@ django-admin.py startproject conf .
 
 **트러블 슈팅**
 
-```{shell}
+```bash
 sudo pip list | grep Django
 Django                       3.2.10    #Django 설치 확인
 sudo /var/www/example/repo/manager.py runserver 0.0.0.0:8000 #장고 테스트 서버가 동작하는지 확인
@@ -102,14 +100,14 @@ sudo /var/www/example/repo/manager.py runserver 0.0.0.0:8000 #장고 테스트 �
 ## uwsgi 설치
 ---
 Python Packaging Authority 도구를 이용해 uwsgi를 설치합니다.
-```{shell}
+```bash
 pip install uwsgi
 ```
 
 <br>
 
 **uwsgi 설정**
-```{shell}
+```bash
 #/etc/uwsgi/sites/example.ini
 [uwsgi]
 uid = foo
@@ -137,7 +135,7 @@ vacuum = true
 
 패키지 관리 도구(dnf)를 이용해 nginx를 설치합니다.
 
-```{shell}
+```bash
 sudo dnf install nginx
 sudo systemctl start nginx
 ```
@@ -148,7 +146,7 @@ nginx는 기본적으로 /etc/nginx/nginx.conf를 참조합니다.
 
 사용자 설정은 /etc/nginx/conf.d 경로에 확장자 .conf 파일을 생성합니다.
 
-```{shell}
+```bash
 #/etc/nginx/conf.d/example.conf 내용
 server {
     listen 80;
@@ -176,27 +174,27 @@ HTTP 서비스 포트로 LISTEN 중인지 확인한다.
 
 아래 두 명령어를 통해 port 80이 서비스 되고 있는지와 `nginx` 프로세스가 80 포트를 열고 있는지 확인할 수 있다.
 
-```{shell}
+```bash
 sudo netstat -antl
 sudo lsof -c nginx -a -i
 ```
 
 그리고 selinux 정책에서 막혀있는지 확인한다.
 
-```{shell}
+```bash
 setsebool httpd_can_network_connect on -P  # 이 옵션이 off일 경우 HTTP 모듈이 네트워크 또는 원격 포트에 대한 연결을 시작하지 못하게 한다.
 getsebool -a  | grep httpd #확인
 ```
 
 방화벽 데몬에서 포트를 차단하는지도 확인한다.
 
-```{shell}
+```bash
 sudo firewall-cmd --permanent --zone=public --add-service=http
 sudo firewall-cmd --permanent --zone=public --add-port=80/tcp
 firewall-cmd --reload
 ```
 
-```{shell}
+```bash
 tail -f /var/log/nginx/error.log
 2024/09/07 21:47:54 [crit] 31478#0: *1 connect() to unix:/var/www/com.example/run/uwsgi.sock failed (13: Permission denied) while connecting to upstream, client: 172.16.123.1, server: 172.16.123.128, request: "GET / HTTP/1.1", upstream: "uwsgi://unix:/var/www/com.example/run/uwsgi.sock:", host: "172.16.123.128"
 2024/09/07 21:47:54 [crit] 31478#0: *1 connect() to unix:/var/www/com.example/run/uwsgi.sock failed (13: Permission denied) while connecting to upstream, client: 172.16.123.1, server: 172.16.123.128, request: "GET /favicon.ico HTTP/1.1", upstream: "uwsgi://unix:/var/www/com.example/run/uwsgi.sock:", host: "172.16.123.128", referrer: "http://172.16.123.128/"
@@ -209,13 +207,7 @@ permissive 모드에서 보안 문제는 /var/log/audit/audit.log에 기록된�
 
 `nginx`가 unix 소켓에 접근 가능하도록 정책 허용
 
-{% highlight ruby %}
-grep nginx /var/log/audit/audit.log | audit2allow
-grep nginx /var/log/audit/audit.log | audit2allow -m nginx
-grep nginx /var/log/audit/audit.log | audit2allow -M nginx
-{% endhighlight %}
-
-```{console}
+```console
 # show the new rules to be generated
 grep nginx /var/log/audit/audit.log | audit2allow
 
